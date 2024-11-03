@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + TS</title>
+    <style>
+      .error-text {
+        color: #dc2626;
+        margin-top: 8px;
+      }
+      #qrResultContainer img {
+        max-width: 300px;
+        margin-bottom: 16px;
+        display: none;
+      }
+      #qrResultContainer input {
+        width: 100%;
+        max-width: 300px;
+        padding: 8px;
+      }
+    </style>
+    <script type="module" crossorigin src="/qr-code-reader.js"></script>
+  </head>
+  <body>
+    <div id="qrResultContainer">
+      <img />
+      <input type="text" readonly />
+      <div id="errorText" class="error-text"></div>
+    </div>
+    <div>
+      <button id="readQrCodeFromFile">Read QR Code from File</button>  
+      <button id="readQrCodeFromCam">Read QR Code from Camera</button>  
+    </div>
+    
+    <script type="text/javascript">
+
+      (function() {
+        const errorText = document.getElementById('errorText');
+        const qrImage = document.querySelector('#qrResultContainer img');
+        const qrInput = document.querySelector('#qrResultContainer input');
+  
+        function clearPreviousResults() {
+          // Clear previous results
+          errorText.textContent = '';
+          qrInput.value = '';
+          qrImage.style.display = 'none';
+          qrImage.src = '';
+        }
+
+        function handleCodeReaderResult(result) {
+          clearPreviousResults();
+            // Display the image regardless of QR code detection
+            const blob = new Blob([result.bytes], { type: result.contentType });
+            qrImage.src = URL.createObjectURL(blob);
+            qrImage.style.display = 'block';
+            qrImage.onload = () => URL.revokeObjectURL(qrImage.src);
+            
+            if (result.error) {
+              errorText.textContent = result.error.message;
+              return;
+            }
+            
+            // Show the QR code value if detected
+            qrInput.value = result.value;
+        }
+        
+        function readQrCodeFromFile() { 
+          // read from the user's file selection
+          window.codeReader.fromFile().submit(handleCodeReaderResult);
+        }
+
+        function readQrCodeFromCamera() {
+          // read from user's camera
+          window.codeReader.fromCamera().submit(handleCodeReaderResult);
+        }
+        
+        document.getElementById('readQrCodeFromFile')?.addEventListener('click', readQrCodeFromFile);
+        document.getElementById('readQrCodeFromCam')?.addEventListener('click', readQrCodeFromCamera);
+      })();
+      
+    </script>
+  </body>
+</html>
